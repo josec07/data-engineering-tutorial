@@ -264,12 +264,8 @@ def test_date_dimension(pg_config):
         with open(TEST_DATE_DIM_FILE, 'r') as f:
             date_sql = f.read()
 
-        # Execute in chunks (some statements need separate execution)
-        statements = date_sql.split(';')
-        for stmt in statements:
-            if stmt.strip():
-                cursor.execute(stmt)
-
+        # Execute as a single transaction (psycopg2 can handle multiple statements)
+        cursor.execute(date_sql)
         conn.commit()
         print("✓ Date dimension created")
 

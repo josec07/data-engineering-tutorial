@@ -57,20 +57,20 @@ CREATE INDEX idx_dim_date_weekend ON dim_date(is_weekend);
 CREATE OR REPLACE FUNCTION populate_date_dimension(start_date DATE, end_date DATE)
 RETURNS void AS $$
 DECLARE
-    current_date DATE := start_date;
+    iter_date DATE := start_date;
     dow INT;
     is_wknd BOOLEAN;
     fiscal_yr INT;
 BEGIN
-    WHILE current_date <= end_date LOOP
-        dow := EXTRACT(DOW FROM current_date);
+    WHILE iter_date <= end_date LOOP
+        dow := EXTRACT(DOW FROM iter_date);
         is_wknd := (dow = 0 OR dow = 6);
 
         -- Calculate fiscal year (April 1 start)
-        IF EXTRACT(MONTH FROM current_date) >= 4 THEN
-            fiscal_yr := EXTRACT(YEAR FROM current_date);
+        IF EXTRACT(MONTH FROM iter_date) >= 4 THEN
+            fiscal_yr := EXTRACT(YEAR FROM iter_date);
         ELSE
-            fiscal_yr := EXTRACT(YEAR FROM current_date) - 1;
+            fiscal_yr := EXTRACT(YEAR FROM iter_date) - 1;
         END IF;
 
         INSERT INTO dim_date (
@@ -96,39 +96,39 @@ BEGIN
             is_weekday,
             is_business_day
         ) VALUES (
-            TO_CHAR(current_date, 'YYYYMMDD')::INT,
-            current_date,
-            EXTRACT(DAY FROM current_date),
+            TO_CHAR(iter_date, 'YYYYMMDD')::INT,
+            iter_date,
+            EXTRACT(DAY FROM iter_date),
             dow,
-            TO_CHAR(current_date, 'Day'),
-            TO_CHAR(current_date, 'Dy'),
-            EXTRACT(DOY FROM current_date),
-            EXTRACT(WEEK FROM current_date),
-            EXTRACT(WEEK FROM current_date),
-            EXTRACT(MONTH FROM current_date),
-            TO_CHAR(current_date, 'Month'),
-            TO_CHAR(current_date, 'Mon'),
-            EXTRACT(QUARTER FROM current_date),
-            'Q' || EXTRACT(QUARTER FROM current_date),
-            EXTRACT(YEAR FROM current_date),
+            TO_CHAR(iter_date, 'Day'),
+            TO_CHAR(iter_date, 'Dy'),
+            EXTRACT(DOY FROM iter_date),
+            EXTRACT(WEEK FROM iter_date),
+            EXTRACT(WEEK FROM iter_date),
+            EXTRACT(MONTH FROM iter_date),
+            TO_CHAR(iter_date, 'Month'),
+            TO_CHAR(iter_date, 'Mon'),
+            EXTRACT(QUARTER FROM iter_date),
+            'Q' || EXTRACT(QUARTER FROM iter_date),
+            EXTRACT(YEAR FROM iter_date),
             fiscal_yr,
             CASE
-                WHEN EXTRACT(MONTH FROM current_date) BETWEEN 4 AND 6 THEN 1
-                WHEN EXTRACT(MONTH FROM current_date) BETWEEN 7 AND 9 THEN 2
-                WHEN EXTRACT(MONTH FROM current_date) BETWEEN 10 AND 12 THEN 3
+                WHEN EXTRACT(MONTH FROM iter_date) BETWEEN 4 AND 6 THEN 1
+                WHEN EXTRACT(MONTH FROM iter_date) BETWEEN 7 AND 9 THEN 2
+                WHEN EXTRACT(MONTH FROM iter_date) BETWEEN 10 AND 12 THEN 3
                 ELSE 4
             END,
             CASE
-                WHEN EXTRACT(MONTH FROM current_date) >= 4
-                THEN EXTRACT(MONTH FROM current_date) - 3
-                ELSE EXTRACT(MONTH FROM current_date) + 9
+                WHEN EXTRACT(MONTH FROM iter_date) >= 4
+                THEN EXTRACT(MONTH FROM iter_date) - 3
+                ELSE EXTRACT(MONTH FROM iter_date) + 9
             END,
             is_wknd,
             NOT is_wknd,
             NOT is_wknd  -- Can be enhanced with holiday logic
         );
 
-        current_date := current_date + INTERVAL '1 day';
+        iter_date := iter_date + INTERVAL '1 day';
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;
