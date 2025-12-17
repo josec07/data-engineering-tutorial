@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y \
 # Install Python dependencies
 RUN pip install --no-cache-dir \
     psycopg2-binary==2.9.7 \
-    sqlalchemy==2.0.20
+    sqlalchemy==2.0.20 \
+    faker==19.6.0
 
 # Copy application files
 COPY . .
