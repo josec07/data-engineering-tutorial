@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Module 1
+  postgres:
+    image: postgres:15-alpine
+    container_name: module1_postgres
+    environment:
+      POSTGRES_USER: type43_user
+      POSTGRES_PASSWORD: type43_pass
+      POSTGRES_DB: type43_db
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts
+    volumes:
+      - module1_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U type43_user -d type43_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Test runner for Module 1
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: module1_tests
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: type43_user
+      PGPASSWORD: type43_pass
+      PGDATABASE: type43_db
+    volumes:
+      - ./solutions:/app/solutions
+      - ./exercises:/app/exercises
+      - ./test_module1.py:/app/test_module1.py
+      - ../../type43.db:/app/type43.db:ro  # Mount SQLite DB if exists
+    command: python test_module1.py
+
+volumes:
+  module1_data:
