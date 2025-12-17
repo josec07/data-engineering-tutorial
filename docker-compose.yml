@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: type43_postgres
+    environment:
+      POSTGRES_USER: type43_user
+      POSTGRES_PASSWORD: type43_pass
+      POSTGRES_DB: type43_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U type43_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Apache Airflow (Module 2)
+  airflow-webserver:
+    image: apache/airflow:2.7.0
+    container_name: type43_airflow
+    depends_on:
+      - postgres
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://type43_user:type43_pass@postgres/type43_db
+      - AIRFLOW__CORE__FERNET_KEY=FB0o_zt4e3Ziq3LdUUO7F2Z95cvFFx16hU8jTeR1ASM=
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__SECRET_KEY=secret
+    volumes:
+      - ./module_2_etl_pipeline/dags:/opt/airflow/dags
+      - ./data:/opt/airflow/data
+      - airflow_logs:/opt/airflow/logs
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "
+      airflow db init &&
+      airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com || true &&
+      airflow webserver & airflow scheduler
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Streamlit Dashboard
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: type43_streamlit
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://type43_user:type43_pass@postgres:5432/type43_db
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./app.py:/app/app.py
+      - ./utils:/app/utils
+      - ./data:/app/data
+    command: streamlit run app.py
+
+  # Jupyter Notebook (for exercises)
+  jupyter:
+    image: jupyter/pyspark-notebook:latest
+    container_name: type43_jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./:/home/jovyan/work
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+
+volumes:
+  postgres_data:
+  airflow_logs:

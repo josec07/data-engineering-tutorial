@@ -1,0 +1,36 @@
+# Core Dependencies
+pandas==2.1.0
+numpy==1.25.0
+streamlit==1.27.0
+
+# Database
+psycopg2-binary==2.9.7
+sqlalchemy==2.0.20
+
+# Apache Airflow (Module 2)
+apache-airflow==2.7.0
+apache-airflow-providers-postgres==5.6.0
+
+# Data Quality (Module 3)
+great-expectations==0.17.0
+pytest==7.4.0
+pytest-cov==4.1.0
+
+# Scalability (Module 4)
+pyarrow==13.0.0
+fastparquet==2023.8.0
+pyspark==3.4.1
+
+# Monitoring (Module 5)
+prometheus-client==0.17.1
+python-json-logger==2.0.7
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
+pyyaml==6.0.1
+
+# Development
+black==23.7.0
+flake8==6.1.0
+ipython==8.15.0
