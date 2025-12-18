@@ -23,6 +23,7 @@ venv/
 env/
 ENV/
 
+
 # Database
 *.db
 *.sqlite
@@ -55,6 +56,11 @@ data/receipts/processed/*.csv
 data/inventory/*.parquet
 data/market_prices/*.json
 
+#archived
+archive/
+
+#module 1
+module_1_data_modeling/
 # Great Expectations
 uncommitted/
 .ge_store_backend_id
